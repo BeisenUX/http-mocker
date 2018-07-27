@@ -6,7 +6,6 @@ class HARReader {
 
   constructor (opts) {
     this.har = JSON.parse(opts.har)
-    console.log(this.har)
     this.indexCache = {}
     this.filter()
   }
@@ -49,6 +48,12 @@ function sendMockData(req, res) {
   const harContent = fs.readFileSync(`${__dirname}/recording.har`, 'utf-8')
   const har = new HARReader({ 'har': harContent })
 
+  const http = har.read(recording)
+
+  if (!http) {
+    return res.json({ code: 400, message: `can not find '${recording}'` })
+  }
+
   let {
     'response': {
       status,
@@ -59,7 +64,7 @@ function sendMockData(req, res) {
         'text': body
       }
     }
-  } = har.read(recording)
+  } = http
 
   res.status(status)
 
@@ -71,13 +76,11 @@ function sendMockData(req, res) {
   })
 
   if (status === 200) {
-
     try {
       if (mimeType === 'application/json') {
         body = JSON.parse(body)
       }
     } catch (e) {}
-      
     res.json(body)
   } else {
     res.end()
@@ -89,7 +92,7 @@ module.exports = function (app, config) {
   config.apiNamespace = prependSlash(config.apiNamespace)
   const router = express.Router()
   router.get('/mock', function (req, res) {
-    sendMockData(req, res)yqbw5c
+    sendMockData(req, res)
   })
   router.post('/mock', function (req, res) {
     sendMockData(req, res)
