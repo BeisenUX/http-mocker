@@ -1,12 +1,13 @@
 
-var express = require('express');
-var fs = require('fs');
+var express = require('express')
+var fs = require('fs')
 
 class HARReader {
 
   constructor (opts) {
     this.har = JSON.parse(opts.har)
-    this.indexCache = {}  
+    console.log(this.har)
+    this.indexCache = {}
     this.filter()
   }
 
@@ -37,50 +38,61 @@ class HARReader {
 
 function prependSlash(slash = '') {
   if (slash.startsWith('/')) {
-    return slash;
+    return slash
   }
-  return `/${slash}`;
+  return `/${slash}`
+}
+
+function sendMockData(req, res) {
+  const recording = req.query.recording
+
+  const harContent = fs.readFileSync(`${__dirname}/recording.har`, 'utf-8')
+  const har = new HARReader({ 'har': harContent })
+
+  let {
+    'response': {
+      status,
+      headers = [],
+      cookies = [],
+      'content': {
+        mimeType, 
+        'text': body
+      }
+    }
+  } = har.read(recording)
+
+  res.status(status)
+
+  headers.forEach(head => res.set(head.name, head.value))
+
+  cookies.forEach(cookie => {
+    let { name, value, ...restOpts } = cookie
+    res.cookie(name, value, restOpts)
+  })
+
+  if (status === 200) {
+
+    try {
+      if (mimeType === 'application/json') {
+        body = JSON.parse(body)
+      }
+    } catch (e) {}
+      
+    res.json(body)
+  } else {
+    res.end()
+  }
 }
 
 module.exports = function (app, config) {
-  config = Object.assign({}, config);
-  config.apiNamespace = prependSlash(config.apiNamespace);
-
-  const router = express.Router();
-
+  config = Object.assign({}, config)
+  config.apiNamespace = prependSlash(config.apiNamespace)
+  const router = express.Router()
   router.get('/mock', function (req, res) {
-    const recording = req.query.recording;
-
-    const harContent = fs.readFileSync(`${__dirname}/recording.har`, 'utf-8')
-    const har = new HARReader({ 'har': harContent })
-
-    let { 'response': { status, 'content': { mimeType, 'text': body } } } = har.read(recording)
-
-    res.status(status);
-
-    if (status === 200) {
-
-      try {
-        if (mimeType === 'application/json') {
-          body = JSON.parse(body)
-        }
-      } catch (e) {}
-      
-      res.json(body);
-    } else {
-      res.end();
-    }
+    sendMockData(req, res)yqbw5c
+  })
+  router.post('/mock', function (req, res) {
+    sendMockData(req, res)
   });
-
-  // router.post('/mock', bodyParser.json({ limit: config.recordingSizeLimit }), function (req, res) {
-  //   const recording = req.params.recording;
-
-  //   const status = _api$saveRecording.status,
-  //         body = _api$saveRecording.body;
-
-
-  //   res.status(status).send(body);
-  // });
-
-  app.use(config.apiNamespace, router);
+  app.use(config.apiNamespace, router)
 }
