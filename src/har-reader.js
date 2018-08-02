@@ -6,12 +6,13 @@ export default class HARReader {
 
   constructor (o) {
     this.workspace = o.workspace
+    this.filters = o.filters
     this.indexCache = {}
     this.har = this.generatorHAR()
-    this.filter()
+    this.removeUselessHttp()
   }
 
-  filter () {
+  removeUselessHttp () {
     const { 'log': { entries = [] } } = this.har
     this.har.log.entries = entries.filter(http =>
       !http

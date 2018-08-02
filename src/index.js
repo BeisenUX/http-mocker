@@ -8,8 +8,7 @@ export default class Server {
   constructor(o) {
     Object.assign(this, {
       'port': 9003,
-      'workspace': '/',
-      'httpHARFile': 'recording.har'
+      'workspace': '/'
     }, o)
   }
 
