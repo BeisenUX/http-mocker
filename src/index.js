@@ -17,8 +17,12 @@ export default class Server {
   start() {
     this.server = new Koa()
     koaOnerror(this.server)
+    this.bindHttp()
+    this.server.listen(this.port)
+  }
 
-    this.server.use(async (ctx, next) => {
+  bindHttp () {
+    this.server.use(async (ctx) => {
       const { path } = ctx
 
       const harHttps = this.translateHAR()
@@ -53,8 +57,6 @@ export default class Server {
       ctx.status = status
       ctx.body = text
     })
-
-    this.server.listen(this.port)
   }
 
   close() {
