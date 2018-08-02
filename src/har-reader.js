@@ -1,9 +1,13 @@
 
+import fs from 'fs'
+import path from 'path'
+
 export default class HARReader {
 
   constructor (o) {
-    this.har = o.har
+    this.workspace = o.workspace
     this.indexCache = {}
+    this.har = this.generatorHAR()
     this.filter()
   }
 
@@ -35,6 +39,30 @@ export default class HARReader {
       if (url.match(new RegExp(key,'ig'))) {
         this.indexCache[key] = i + 1
         return entries[i]
+      }
+    }
+  }
+
+  generatorHAR() {
+    let entries = []
+
+    // 从接口元数据目录中，把所有接口配置读取出来生成 entries
+    fs.readdirSync(this.workspace)
+      .filter(filename => !filename.match(/^\./))
+      .forEach(filename => {
+        const harHttpJson = require(path.join(this.workspace, filename))
+        entries.push(harHttpJson)
+      })
+
+    return {
+      "log": {
+        "version": "0.0.1",
+        "creator": {
+          "name": "@beisen/http-mocker",
+          "version": "0.0.1"
+        },
+        "pages": {},
+        "entries": entries
       }
     }
   }

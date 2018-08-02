@@ -1,5 +1,4 @@
-import fs from 'fs'
-import path from 'path'
+
 import HARReader from './har-reader'
 import Koa from 'koa'
 import koaOnerror from 'koa-onerror'
@@ -15,19 +14,19 @@ export default class Server {
   }
 
   start() {
+    // 服务器相关配置
     this.server = new Koa()
     koaOnerror(this.server)
     this.bindHttp()
     this.server.listen(this.port)
+    // 读取HAR文件
+    this.har = new HARReader({ 'workspace': this.workspace })
   }
 
   bindHttp () {
     this.server.use(async (ctx) => {
       const { path } = ctx
-
-      const harHttps = this.translateHAR()
-      const har = new HARReader({ 'har': harHttps })
-      const httphar = har.get(path)
+      const httphar = this.har.get(path)
 
       const {
         'request': {
@@ -66,29 +65,5 @@ export default class Server {
 
   onServerError(err) {
     console.log('server error', err)
-  }
-
-  translateHAR() {
-    let entries = []
-
-    // 从接口元数据目录中，把所有接口配置读取出来生成 entries
-    fs.readdirSync(this.workspace)
-      .filter(filename => !filename.match(/^\./))
-      .forEach(filename => {
-        const harHttpJson = require(path.join(this.workspace, filename))
-        entries.push(harHttpJson)
-      })
-
-    return {
-      "log": {
-        "version": "0.0.1",
-        "creator": {
-          "name": "@beisen/http-mocker",
-          "version": "0.0.1"
-        },
-        "pages": {},
-        "entries": entries
-      }
-    }
   }
 }
