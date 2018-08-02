@@ -1,7 +1,7 @@
 
-import HARReader from './har-reader'
 import Koa from 'koa'
 import koaOnerror from 'koa-onerror'
+import HARReader from './har-reader'
 
 export default class Server {
 
@@ -55,14 +55,5 @@ export default class Server {
       ctx.status = status
       ctx.body = text
     })
-  }
-
-  close() {
-    this.server.restore()
-    this.xhr.restore()
-  }
-
-  onServerError(err) {
-    console.log('server error', err)
   }
 }

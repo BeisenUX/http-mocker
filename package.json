@@ -2,14 +2,19 @@
   "name": "@beisen/http-mocker",
   "version": "0.0.1",
   "main": "lib/index.js",
+  "bin": {
+    "http-mocker": "bin/index.js"
+  },
   "scripts": {
+    "prepublish": "gulp",
     "test": "mocha ./test/index.js",
     "watch": "gulp watch",
     "cover": "istanbul cover --report lcov _mocha -- -R spec ./test/index.js"
   },
   "dependencies": {
     "koa": "^2.5.2",
-    "koa-onerror": "^4.0.0"
+    "koa-onerror": "^4.0.0",
+    "minimist": "^1.2.0"
   },
   "devDependencies": {
     "babel-core": "^6.26.3",

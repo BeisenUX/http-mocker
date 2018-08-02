@@ -9,7 +9,7 @@ export default class HARReader {
     this.filters = o.filters
     this.indexCache = {}
     this.har = this.generatorHAR()
-    this.removeUselessHttp()
+    // this.removeUselessHttp()
   }
 
   removeUselessHttp () {
